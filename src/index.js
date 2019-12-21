@@ -1,62 +1,85 @@
 // 数据
-const appState = {
-    title: {
-        text: 'Reat.js 小书',
-        color: 'red',
-    },
-    content: {
-        text: 'React.js 小书内容',
-        color: 'blue',
-    }
-}
-
 
 // 渲染函数，吧状态的数据渲染到页面上。
-function renderApp (appState) {
-    renderTitle(appState.title)
-    renderContent(appState.content)
+function renderApp (newAppState, oldAppState = {}) {
+    if(newAppState === oldAppState) return //数据没有变化就不渲染了
+    console.log('render app...')
+    renderTitle(newAppState.title, oldAppState.title)
+    renderContent(newAppState.content, oldAppState.content)
 }
-function renderTitle (title) {
+function renderTitle (newTitle, oldTitle = {}) {
+    if(newTitle === oldTitle) return 
+    console.log('render title...')
     const titleDOM = document.getElementById('title')
-    titleDOM.innerHTML = title.text
-    titleDOM.style.color = title.color
+    titleDOM.innerHTML = newTitle.text
+    titleDOM.style.color = newTitle.color
 }
-function renderContent (content) {
+function renderContent (newContent, oldContent = {}) {
+    if(newContent === oldContent) return
+    console.log('render content...')
     const contentDOM = document.getElementById('content')
-    contentDOM.innerHTML = content.text
-    contentDOM.style.color = content.color
+    contentDOM.innerHTML = newContent.text
+    contentDOM.style.color = newContent.color
 }
 
 
 // 修改appState
 function stateChanger  (state, action) {
+    if(!state){
+        return {
+            title: {
+                text: 'Reat.js 小书',
+                color: 'red',
+            },
+            content: {
+                text: 'React.js 小书内容',
+                color: 'blue',
+            }
+        }
+    }
     switch (action.type) {
         case 'UPDATE_TITLE_TEXT':
-            state.title.text = action.text
-            break
+            return {
+                ...state,
+                title: {
+                    ...state.title,
+                    text: action.text
+                }
+            }
         case 'UPDATE_TITLE_COLOR':
-            state.title.color = action.color
-            break
+            return {
+                ...state,
+                title: {
+                    ...state.title,
+                    color: action.color
+                }
+            }
         default:
-            break
+            return state
     }
 } 
 
 
-function createStore (state, stateChanger) {
+function createStore (reducer) {
+    let state = null
     const listeners = []
     const subscribe = (listener) => listeners.push(listener)
-
     const getState = () => state
     const dispatch = (action) => {
-        stateChanger(state, action)
+        state = reducer(state, action)
         listeners.forEach((listener)=>listener())
     }
+    dispatch({})
     return { getState, dispatch, subscribe}
 }
 
-const store = createStore(appState, stateChanger)
-store.subscribe(()=>renderApp(store.getState()))
+const store = createStore(stateChanger)
+let oldState = store.getState()
+store.subscribe(()=>{
+    const newState = store.getState()
+    renderApp(newState, oldState)
+    oldState = newState
+})
 
 renderApp(store.getState());
 store.dispatch({type: 'UPDATE_TITLE_TEXT', text: '《React.js 小书》'})
