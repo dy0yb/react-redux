@@ -4,7 +4,7 @@ import { connect } from './react-redux'
 
 
 class ThemeSwitch extends Component {
-    static contextTypes = {
+    static propTypes  = { ///////
         themeColor: PropTypes.string,
         onSwitchColor: PropTypes.func
     }
